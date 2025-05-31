@@ -14,15 +14,9 @@ public class VentanaAdministradora extends JPanel {
 
     public static JFrame crearVentana() {
         JFrame ventana = new JFrame();
-        Image iconoJuego =
-                new ImageIcon(
-                        Objects.requireNonNull(
-                                VentanaAdministradora.class.getResource(
-                                        "/Presentación/Recursos/Icono/icono.png")
-                        )
-                ).getImage();
+        Image iconoJuego = new ImageIcon(Objects.requireNonNull(VentanaAdministradora.class.getResource(
+                "/Presentación/Recursos/Imagenes/icono.png"))).getImage();
         ventana.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        //ventana.setResizable(true);
         ventana.setResizable(false);
         ventana.setTitle("Playlist Organizer");
 
@@ -30,8 +24,6 @@ public class VentanaAdministradora extends JPanel {
         VentanaPlaylist ventanaPlaylist = new VentanaPlaylist();
         ventana.add(ventanaPlaylist);
 
-        //ventana.setSize(1200, 800);
-        //ventana.setMinimumSize(new Dimension(800, 600));
         ventana.pack();
         ventana.setLocationRelativeTo(null);
         ventana.setVisible(true);
