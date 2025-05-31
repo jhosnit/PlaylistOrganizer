@@ -15,7 +15,7 @@ public class VentanaAdministradora extends JPanel {
     public static JFrame crearVentana() {
         JFrame ventana = new JFrame();
         Image iconoJuego = new ImageIcon(Objects.requireNonNull(VentanaAdministradora.class.getResource(
-                "/Presentación/Recursos/Icono/icono.png"))).getImage();
+                "/Presentación/Recursos/Imagenes/icono.png"))).getImage();
         ventana.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         ventana.setResizable(false);
         ventana.setTitle("Playlist Organizer");
