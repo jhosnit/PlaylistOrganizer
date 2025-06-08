@@ -1,4 +1,6 @@
-package Lógica;
+package Lógica.Servicios;
+
+import Lógica.Modelo.Canción;
 
 import java.util.*;
 

@@ -1,8 +1,8 @@
 package Presentación.Ventanas;
 
-import Lógica.Canción;
-import Lógica.Estabilidad;
-import Lógica.PlayList;
+import Lógica.Modelo.Canción;
+import Lógica.Servicios.Estabilidad;
+import Lógica.Modelo.PlayList;
 import Presentación.Recursos.Componentes.Barra;
 import Presentación.Recursos.Componentes.Bordes;
 

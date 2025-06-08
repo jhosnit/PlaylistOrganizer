@@ -1,4 +1,6 @@
-package Lógica;
+package Lógica.Modelo;
+
+import Lógica.Algoritmos.Ordenamiento;
 
 import java.util.ArrayList;
 import java.util.Collections;

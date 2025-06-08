@@ -5,10 +5,10 @@ import javax.swing.border.Border;
 import java.awt.*;
 
 public class Bordes extends AbstractBorder implements Border {
-    private final int radio;
+    private final int RADIO;
 
     public Bordes(int radio) {
-        this.radio = radio;
+        this.RADIO = radio;
     }
 
     @Override
@@ -16,7 +16,7 @@ public class Bordes extends AbstractBorder implements Border {
         Graphics2D g2 = (Graphics2D) g;
         g2.setColor(Color.WHITE);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.drawRoundRect(x, y, ancho - 1, alto - 1, radio, radio);
+        g2.drawRoundRect(x, y, ancho - 1, alto - 1, RADIO, RADIO);
     }
 
     @Override

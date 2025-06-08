@@ -1,4 +1,4 @@
-package Lógica;
+package Lógica.Modelo;
 
 import java.util.Objects;
 
