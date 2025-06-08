@@ -36,5 +36,4 @@ public class Bordes extends AbstractBorder implements Border {
         return insets;
     }
 
-
 }

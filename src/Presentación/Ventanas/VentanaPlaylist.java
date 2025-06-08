@@ -1,6 +1,7 @@
 package Presentación.Ventanas;
 
 import Lógica.Canción;
+import Lógica.Estabilidad;
 import Lógica.PlayList;
 import Presentación.Recursos.Componentes.Barra;
 import Presentación.Recursos.Componentes.Bordes;
@@ -8,6 +9,7 @@ import Presentación.Recursos.Componentes.Bordes;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.util.ArrayList;
 
 public class VentanaPlaylist extends JPanel {
 
@@ -16,41 +18,218 @@ public class VentanaPlaylist extends JPanel {
     private static final int ALTO_BOTON = 60;
     private static final int ANCHO_BOTON_BARRA = 60;
     private static final int ANCHO_BOTON_ORDEN = 200;
+    private static final int TAMAÑO_LETRA = 13;
     private static final int X = 0;
     private static final int Y = 0;
 
-
     PlayList playlist = new PlayList();
     private JPanel panelCanciones;
+    private int estadoIngreso = 0;
+    private String tempNombre = "";
+    private String tempArtista = "";
+    private JTextField barraDeEscritura;
+    private JLabel iconoBarraEscritura;
+    private JLabel etiquetaCosteComputacional;
 
-    private Image imagen;
 
     public VentanaPlaylist() {
         setPreferredSize(new Dimension(ANCHO_VENTANA, ALTO_VENTANA));
         setBackground(new Color(18, 18, 18, 255));
-        cargarImagenLogo();
 
-        setLayout(null); // Usamos layout absoluto para posicionar botones y evitar paneles+
+        setLayout(null); // Posicionar botones y no paneles
 
-        agregarBarraSuperior();
-        agregarBotones();
+        agregarPanelSuperior();
+        agregarBotonesOrdenamiento();
         agregarPanelCanciones();
+        agregarEtiquetaCosteComputacional();
+        actualizarPanelCanciones();
 
     }
 
-    private void cargarImagenLogo() {
-        imagen = Toolkit.getDefaultToolkit().getImage(
-                getClass().getResource("/Presentación/Recursos/Imagenes/logo.png"));
+    private void agregarPanelSuperior() {
+        JPanel panelSuperior = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+        panelSuperior.setBackground(Color.BLACK);
+        panelSuperior.setBounds(X, Y, ANCHO_VENTANA, 90);
+
+        JButton botonMas = crearBoton("➕", X, Y, ANCHO_BOTON_BARRA, ALTO_BOTON, false);
+        botonMas.addActionListener(e -> {
+            estadoIngreso = 1;
+            barraDeEscritura.setText("");
+            barraDeEscritura.setEnabled(true);
+            iconoBarraEscritura.setFont(new Font("", Font.BOLD, TAMAÑO_LETRA));
+            iconoBarraEscritura.setText("Nombre   ");
+            barraDeEscritura.requestFocus();
+            limpiarCosteComputacional();
+        });
+
+        JButton botonReorganizar = crearBoton("\uD83D\uDD03", X, Y, ANCHO_BOTON_BARRA, ALTO_BOTON, false);
+        botonReorganizar.addActionListener(e -> {
+            playlist.revolverCanciones(); // Revolver las canciones
+            actualizarPanelCanciones();
+            limpiarCosteComputacional();
+        });
+
+        JButton botonBiblioteca = crearBoton("\uD83D\uDCD7 ", X, Y, ANCHO_BOTON_BARRA, ALTO_BOTON, false);
+        botonBiblioteca.addActionListener(e -> {
+            playlist = new PlayList(); // Reinicia la lista con una nueva instancia
+            playlist.cargarCancionesIniciales(); // Carga las canciones por defecto
+            actualizarPanelCanciones();
+            limpiarCosteComputacional();
+        });
+
+        JPanel panelBarraEscritura = new JPanel(new BorderLayout());
+        panelBarraEscritura.setBackground(Color.BLACK);
+        panelBarraEscritura.setBorder(new Bordes(50));
+        panelBarraEscritura.setPreferredSize(new Dimension(500, ALTO_BOTON));
+
+        // Icono
+        iconoBarraEscritura = new JLabel("\uD83C\uDFB5   ");
+        iconoBarraEscritura.setFont(new Font("", Font.BOLD, 20));
+        iconoBarraEscritura.setForeground(Color.WHITE);
+        iconoBarraEscritura.setBorder(new EmptyBorder(0, 10, 0, 0));
+
+        // Escritura dentro de la barra
+        barraDeEscritura = new JTextField("");
+        barraDeEscritura.setEnabled(false);
+        barraDeEscritura.setFont(new Font("", Font.PLAIN, TAMAÑO_LETRA)); // Escritura del texto
+        barraDeEscritura.setForeground(Color.WHITE); // Color que el usuario escribe
+        barraDeEscritura.setBackground(Color.BLACK); // Color del fondo
+        barraDeEscritura.setCaretColor(Color.WHITE); // Color del cursor
+        barraDeEscritura.setBorder(null);
+        barraDeEscritura.addActionListener(e -> {
+            String entrada = barraDeEscritura.getText().trim();
+
+            switch (estadoIngreso) {
+                case 1:
+                    tempNombre = entrada;
+                    barraDeEscritura.setText("");
+                    iconoBarraEscritura.setFont(new Font("", Font.BOLD, TAMAÑO_LETRA));
+                    iconoBarraEscritura.setText("Artista   ");
+                    estadoIngreso = 2;
+                    break;
+                case 2:
+                    tempArtista = entrada;
+                    barraDeEscritura.setText("");
+                    iconoBarraEscritura.setFont(new Font("", Font.BOLD, TAMAÑO_LETRA));
+                    iconoBarraEscritura.setText("Duración   ");
+                    estadoIngreso = 3;
+                    break;
+                case 3:
+                    try {
+                        int duracion = Integer.parseInt(entrada);
+                        playlist.agregarCancion(tempNombre, tempArtista, duracion);
+                        actualizarPanelCanciones();
+
+                        barraDeEscritura.setText("");
+                        barraDeEscritura.setBorder(null);
+                        iconoBarraEscritura.setText("\uD83C\uDFB5   ");
+                        iconoBarraEscritura.setFont(new Font("", Font.BOLD, 20));
+                        iconoBarraEscritura.setForeground(Color.WHITE);
+                        iconoBarraEscritura.setBorder(new EmptyBorder(0, 10, 0, 0));
+                        estadoIngreso = 0;
+                        barraDeEscritura.setEnabled(false);
+                    } catch (NumberFormatException ex) {
+                        barraDeEscritura.setText("");
+                    }
+                    break;
+            }
+        });
+
+        panelBarraEscritura.add(iconoBarraEscritura, BorderLayout.WEST);
+        panelBarraEscritura.add(barraDeEscritura, BorderLayout.CENTER);
+
+        panelSuperior.add(botonMas);
+        panelSuperior.add(botonBiblioteca);
+        panelSuperior.add(panelBarraEscritura);
+        panelSuperior.add(botonReorganizar);
+
+        add(panelSuperior);
     }
 
-    private void agregarBotones() {
-        JButton botonDuracion = crearBoton("Duración", 250, 200, ANCHO_BOTON_ORDEN, ALTO_BOTON, true);
-        JButton botonNombre = crearBoton("Nombre", 500, 200, ANCHO_BOTON_ORDEN, ALTO_BOTON, true);
-        JButton botonArtista = crearBoton("Artista", 750, 200, ANCHO_BOTON_ORDEN, ALTO_BOTON, true);
+    private void agregarBotonesOrdenamiento() {
+        JButton botonNombre = crearBoton("Nombre", 250, 200, ANCHO_BOTON_ORDEN, ALTO_BOTON, true);
+        botonNombre.addActionListener(e -> {
+            ArrayList<Canción> copia = new ArrayList<>(playlist.getListaDeCanciones());
 
-        add(botonDuracion);
+            long inicio = System.nanoTime();
+            playlist.ordenarCancionesPorNombre();
+            long fin = System.nanoTime();
+
+            actualizarPanelCanciones();
+
+            if (playlist.getListaDeCanciones().isEmpty()) {
+                mostrarCosteComputacional("");
+            } else {
+                boolean estable = Estabilidad.esEstable(copia, playlist.getListaDeCanciones(), "nombre");
+                mostrarCosteComputacional("Coste computacional (Nombre): " + ((fin - inicio) / 1e6) + " ms"
+                        + (estable ? " | Estable" : " | No estable"));
+            }
+        });
+
+        JButton botonArtista = crearBoton("Artista", 500, 200, ANCHO_BOTON_ORDEN, ALTO_BOTON, true);
+        botonArtista.addActionListener(e -> {
+            ArrayList<Canción> copia = new ArrayList<>(playlist.getListaDeCanciones());
+
+            long inicio = System.nanoTime();
+            playlist.ordenarCancionesPorArtista();
+            long fin = System.nanoTime();
+
+            actualizarPanelCanciones();
+
+            if (playlist.getListaDeCanciones().isEmpty()) {
+                mostrarCosteComputacional("");
+            } else {
+                boolean estable = Estabilidad.esEstable(copia, playlist.getListaDeCanciones(), "artista");
+                mostrarCosteComputacional("Coste computacional (Artista): " + ((fin - inicio) / 1e6) + " ms"
+                        + (estable ? " | Estable" : " | No estable"));
+            }
+        });
+
+        JButton botonDuracion = crearBoton("Duración", 750, 200, ANCHO_BOTON_ORDEN, ALTO_BOTON, true);
+        botonDuracion.addActionListener(e -> {
+            ArrayList<Canción> copia = new ArrayList<>(playlist.getListaDeCanciones());
+
+            long inicio = System.nanoTime();
+            playlist.ordenarCancionesPorDuracion();
+            long fin = System.nanoTime();
+
+            actualizarPanelCanciones();
+
+            if (playlist.getListaDeCanciones().isEmpty()) {
+                mostrarCosteComputacional("");
+            } else {
+                boolean estable = Estabilidad.esEstable(copia, playlist.getListaDeCanciones(), "duración");
+                mostrarCosteComputacional("Coste computacional (Duración): " + ((fin - inicio) / 1e6) + " ms"
+                        + (estable ? " | Estable" : " | No estable"));
+            }
+        });
+
         add(botonNombre);
         add(botonArtista);
+        add(botonDuracion);
+    }
+
+    private void agregarPanelCanciones() {
+        panelCanciones = new JPanel();
+        panelCanciones.setLayout(new BoxLayout(panelCanciones, BoxLayout.Y_AXIS));
+        panelCanciones.setBackground(new Color(25, 25, 25));
+
+        JScrollPane barraDeslizante = new JScrollPane(panelCanciones);
+        barraDeslizante.getVerticalScrollBar().setUI(new Barra());
+        barraDeslizante.setBounds(150, 300, 900, 450);
+        barraDeslizante.setBorder(null);
+        barraDeslizante.getVerticalScrollBar().setUnitIncrement(16);
+
+        add(barraDeslizante);
+        actualizarPanelCanciones();
+    }
+
+    private void agregarEtiquetaCosteComputacional() {
+        etiquetaCosteComputacional = new JLabel(" ");
+        etiquetaCosteComputacional.setBounds(411, 760, 700, 30);
+        etiquetaCosteComputacional.setForeground(Color.GREEN);
+        etiquetaCosteComputacional.setFont(new Font("", Font.BOLD, 16));
+        add(etiquetaCosteComputacional);
     }
 
     private JButton crearBoton(String texto, int x, int y, int ancho, int alto, boolean usarXY) {
@@ -68,152 +247,21 @@ public class VentanaPlaylist extends JPanel {
         return boton;
     }
 
-
-    private void agregarBarraSuperior() {
-        JPanel barraSuperior = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-        barraSuperior.setBackground(Color.BLACK);
-        barraSuperior.setBounds(X, Y, ANCHO_VENTANA, 90);
-
-
-        JButton botonMas = crearBoton("➕", X, Y, ANCHO_BOTON_BARRA, ALTO_BOTON, false);
-        JButton botonReorganizar = crearBoton("\uD83D\uDD03", X, Y, ANCHO_BOTON_BARRA, ALTO_BOTON, false);
-        JButton botonBiblioteca = crearBoton("\uD83D\uDCD7 ", X, Y, ANCHO_BOTON_BARRA, ALTO_BOTON, false);
-        JButton botonCosteComputacional = crearBoton("\uD83D\uDCCA", X, Y, ANCHO_BOTON_BARRA, ALTO_BOTON, false);
-        JButton botonInestable = crearBoton("\uD83D\uDCC9", X, Y, ANCHO_BOTON_BARRA, ALTO_BOTON, false);
-
-        botonMas.addActionListener(e -> mostrarDialogoAgregarCancion());
-        JPanel panelBusqueda = new JPanel(new BorderLayout());
-        panelBusqueda.setBackground(Color.BLACK);
-        panelBusqueda.setBorder(new Bordes(50));
-        panelBusqueda.setPreferredSize(new Dimension(500, ALTO_BOTON));
-
-        JLabel iconoBusqueda = new JLabel("\uD83D\uDD0D ");
-
-        iconoBusqueda.setFont(new Font("", Font.BOLD, 20));
-        iconoBusqueda.setForeground(Color.WHITE);
-        iconoBusqueda.setBorder(new EmptyBorder(0, 10, 0, 0));
-
-        JTextField campo = new JTextField(" ");
-        campo.setForeground(Color.LIGHT_GRAY);
-        campo.setBackground(Color.BLACK);
-        campo.setBorder(null);
-
-        panelBusqueda.add(iconoBusqueda, BorderLayout.WEST);
-        panelBusqueda.add(campo, BorderLayout.CENTER);
-
-        barraSuperior.add(botonReorganizar);
-        barraSuperior.add(botonMas);
-        barraSuperior.add(botonBiblioteca);
-
-        barraSuperior.add(panelBusqueda);
-
-        barraSuperior.add(botonCosteComputacional);
-        barraSuperior.add(botonInestable);
-        add(barraSuperior);
+    private void mostrarCosteComputacional(String mensaje) {
+        etiquetaCosteComputacional.setText(mensaje);
     }
 
-    private void agregarPanelCanciones() {
-        panelCanciones = new JPanel();
-        panelCanciones.setLayout(new BoxLayout(panelCanciones, BoxLayout.Y_AXIS));
-        panelCanciones.setBackground(new Color(25, 25, 25));
-
-        JScrollPane scroll = new JScrollPane(panelCanciones);
-        scroll.getVerticalScrollBar().setUI(new Barra());
-        scroll.setBounds(150, 300, 900, 450);
-        scroll.setBorder(null);
-        scroll.getVerticalScrollBar().setUnitIncrement(16);
-
-        add(scroll);
-
-        actualizarPanelCanciones();
-    }
-
-
-    @Override
-    protected void paintComponent(Graphics graphics) {
-        super.paintComponent(graphics);
-        Graphics2D g2d = (Graphics2D) graphics;
-        g2d.setFont(g2d.getFont().deriveFont(Font.BOLD, 45F));
-
-        String texto = "Playlist Organizer";
-        int x = obtenerXParaTextoCentrado(texto, g2d);
-        g2d.setColor(new Color(75, 55, 144));
-        g2d.drawString(texto, x, 150);
-        g2d.drawImage(imagen, 950, 86, 100, 100, this);
-
-    }
-
-    private int obtenerXParaTextoCentrado(String texto, Graphics2D g2d) {
-        int anchoTexto = (int) g2d.getFontMetrics().getStringBounds(texto, g2d).getWidth();
-        return (ANCHO_VENTANA - anchoTexto) / 2;
-    }
-
-    private void mostrarDialogoAgregarCancion() {
-        JDialog dialogo = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Agregar canción", true);
-        dialogo.setSize(400, 300);
-        dialogo.setLayout(new BorderLayout());
-        dialogo.setUndecorated(true);
-        dialogo.getRootPane().setBorder(BorderFactory.createLineBorder(new Color(75, 55, 144), 2));
-
-        JPanel panelContenido = new JPanel(new GridLayout(3, 2, 10, 10));
-        panelContenido.setBackground(Color.BLACK);
-        panelContenido.setBorder(new EmptyBorder(20, 20, 20, 20));
-
-        JLabel labelNombre = crearLabel("Nombre:");
-        JTextField campoNombre = crearCampo();
-
-        JLabel labelArtista = crearLabel("Artista:");
-        JTextField campoArtista = crearCampo();
-
-        JLabel labelDuracion = crearLabel("Duración (segundos):");
-        JTextField campoDuracion = crearCampo();
-
-        panelContenido.add(labelNombre);
-        panelContenido.add(campoNombre);
-        panelContenido.add(labelArtista);
-        panelContenido.add(campoArtista);
-        panelContenido.add(labelDuracion);
-        panelContenido.add(campoDuracion);
-
-        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        panelBotones.setBackground(Color.BLACK);
-
-        JButton botonAceptar = crearBotonDialogo("Aceptar", new Color(75, 55, 144));
-        JButton botonCancelar = crearBotonDialogo("Cancelar", Color.DARK_GRAY);
-
-        botonAceptar.addActionListener(e -> {
-            String nombre = campoNombre.getText().trim();
-            String artista = campoArtista.getText().trim();
-            String duracionTexto = campoDuracion.getText().trim();
-            try {
-                int duracion = Integer.parseInt(duracionTexto);
-                playlist.agregarCancion(nombre, artista, duracion);
-                actualizarPanelCanciones();
-                dialogo.dispose();
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Duración inválida. Debe ser un número entero.", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-
-        botonCancelar.addActionListener(e -> dialogo.dispose());
-
-        panelBotones.add(botonCancelar);
-        panelBotones.add(botonAceptar);
-
-        dialogo.add(panelContenido, BorderLayout.CENTER);
-        dialogo.add(panelBotones, BorderLayout.SOUTH);
-
-        dialogo.setLocationRelativeTo(this);
-        dialogo.setVisible(true);
+    private void limpiarCosteComputacional() {
+        etiquetaCosteComputacional.setText(" ");
     }
 
     private void actualizarPanelCanciones() {
-        panelCanciones.removeAll(); // Limpia el contenido anterior del panel
+        panelCanciones.removeAll();
 
-        // Recorre la lista de canciones y crea etiquetas para cada una
+        // Recorre la lista de canciones
         for (int i = 0; i < playlist.getListaDeCanciones().size(); i++) {
             Canción canción = playlist.getListaDeCanciones().get(i);
-            String texto = (i + 1) + ". " + canción.getNombre() + " - " + canción.getArtista() + " (" + canción.getDuracion()+ "s)";
+            String texto = (i + 1) + ". " + canción.getNombre() + " - " + canción.getArtista() + " (" + canción.getDuracion() + "s)";
 
             JLabel etiqueta = new JLabel(texto);
             etiqueta.setForeground(Color.WHITE);
@@ -223,34 +271,21 @@ public class VentanaPlaylist extends JPanel {
             panelCanciones.add(etiqueta);
         }
 
-        // Asegura que los cambios se vean en pantalla
+        // Para que los cambios se vean en pantalla
         panelCanciones.revalidate();
         panelCanciones.repaint();
     }
 
-    private JLabel crearLabel(String texto) {
-        JLabel label = new JLabel(texto);
-        label.setForeground(Color.WHITE);
-        label.setFont(new Font("Arial", Font.BOLD, 14));
-        return label;
+    @Override
+    protected void paintComponent(Graphics graphics) {
+        super.paintComponent(graphics);
+        Graphics2D g2d = (Graphics2D) graphics;
+        g2d.setFont(g2d.getFont().deriveFont(Font.BOLD, 45F));
+
+        String texto = "Playlist Organizer";
+        g2d.setColor(new Color(75, 55, 144));
+        g2d.drawString(texto, 411, 150);
+
     }
 
-    private JTextField crearCampo() {
-        JTextField campo = new JTextField();
-        campo.setBackground(new Color(30, 30, 30));
-        campo.setForeground(Color.WHITE);
-        campo.setCaretColor(Color.WHITE);
-        campo.setBorder(BorderFactory.createLineBorder(new Color(75, 55, 144)));
-        return campo;
-    }
-
-    private JButton crearBotonDialogo(String texto, Color colorFondo) {
-        JButton boton = new JButton(texto);
-        boton.setForeground(Color.WHITE);
-        boton.setBackground(colorFondo);
-        boton.setFocusPainted(false);
-        boton.setBorder(new Bordes(30));
-        boton.setFont(new Font("Arial", Font.BOLD, 14));
-        return boton;
-    }
 }
