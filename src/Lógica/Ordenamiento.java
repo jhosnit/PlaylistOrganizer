@@ -3,7 +3,6 @@ package Lógica;
 import java.util.ArrayList;
 
 public class Ordenamiento {
-    //ArrayList<Canción> listaCancionesOrdenadas = new ArrayList();
 
     public void ordenamientoNombreBurbuja(ArrayList<Canción> listaCanciones) {
         Canción aux;
@@ -16,7 +15,6 @@ public class Ordenamiento {
                 }
             }
         }
-        //return listaCanciones;
     }
 
     public void ordenamientoArtistaInserción(ArrayList<Canción> listaCanciones) {
@@ -29,7 +27,6 @@ public class Ordenamiento {
             }
             listaCanciones.set(j + 1, canciónActual);
         }
-        //return listaCanciones;
     }
 
     public void ordenamientoDuraciónSelección(ArrayList<Canción> listaCanciones) {
@@ -46,7 +43,6 @@ public class Ordenamiento {
                 listaCanciones.set(indiceMin, aux);
             }
         }
-        //return listaCanciones;
     }
 
 }

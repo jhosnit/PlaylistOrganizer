@@ -16,6 +16,10 @@ public class PlayList {
     }
 
     public void cargarCancionesIniciales() {
+        agregarCancion("A", "Artista1", 200);
+        agregarCancion("B", "Artista2", 200);
+        agregarCancion("C", "Artista3", 150);
+        agregarCancion("D", "Artista4", 150);
         agregarCancion("Rosas", "La Oreja de Van Gogh", 240);
         agregarCancion("Fix You", "Coldplay", 300);
         agregarCancion("Billie Jean", "Michael Jackson", 294);

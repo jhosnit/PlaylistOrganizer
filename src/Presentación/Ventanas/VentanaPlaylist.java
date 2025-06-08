@@ -1,6 +1,7 @@
 package Presentación.Ventanas;
 
 import Lógica.Canción;
+import Lógica.Estabilidad;
 import Lógica.PlayList;
 import Presentación.Recursos.Componentes.Barra;
 import Presentación.Recursos.Componentes.Bordes;
@@ -8,6 +9,7 @@ import Presentación.Recursos.Componentes.Bordes;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.util.ArrayList;
 
 public class VentanaPlaylist extends JPanel {
 
@@ -19,117 +21,35 @@ public class VentanaPlaylist extends JPanel {
     private static final int TAMAÑO_LETRA = 13;
     private static final int X = 0;
     private static final int Y = 0;
+
     PlayList playlist = new PlayList();
     private JPanel panelCanciones;
-
     private int estadoIngreso = 0;
     private String tempNombre = "";
     private String tempArtista = "";
     private JTextField barraDeEscritura;
     private JLabel iconoBarraEscritura;
-    private Image imagen;
-    private JLabel etiquetaTiempo;
+    private JLabel etiquetaCosteComputacional;
 
 
     public VentanaPlaylist() {
         setPreferredSize(new Dimension(ANCHO_VENTANA, ALTO_VENTANA));
         setBackground(new Color(18, 18, 18, 255));
-        //cargarImagenLogo();
 
-        setLayout(null); // Usamos layout absoluto para posicionar botones y evitar paneles+
+        setLayout(null); // Posicionar botones y no paneles
 
-        agregarBarraSuperior();
-        agregarBotones();
+        agregarPanelSuperior();
+        agregarBotonesOrdenamiento();
         agregarPanelCanciones();
-        agregarEtiquetaTiempo();
+        agregarEtiquetaCosteComputacional();
         actualizarPanelCanciones();
 
     }
 
-    private void cargarImagenLogo() {
-        imagen = Toolkit.getDefaultToolkit().getImage(
-                getClass().getResource("/Presentación/Recursos/Imagenes/logo.png"));
-    }
-
-    private void mostrarTiempo(String mensaje) {
-        etiquetaTiempo.setText(mensaje);
-    }
-
-    private void limpiarTiempo() {
-        etiquetaTiempo.setText(" ");
-    }
-
-    private void agregarEtiquetaTiempo() {
-        etiquetaTiempo = new JLabel(" ");
-        etiquetaTiempo.setBounds(450, 760, 400, 30);
-        etiquetaTiempo.setForeground(Color.GREEN);
-        etiquetaTiempo.setFont(new Font("Arial", Font.BOLD, 16));
-        add(etiquetaTiempo);
-    }
-
-    private void agregarBotones() {
-        JButton botonNombre = crearBoton("Nombre", 250, 200, ANCHO_BOTON_ORDEN, ALTO_BOTON, true);
-        botonNombre.addActionListener(e -> {
-            long inicio = System.nanoTime();
-            playlist.ordenarCancionesPorNombre();
-            long fin = System.nanoTime();
-            actualizarPanelCanciones();
-            if (playlist.getListaDeCanciones().isEmpty()) {
-                mostrarTiempo("");
-            } else {
-                mostrarTiempo("Coste computacional (Nombre): " + ((fin - inicio) / 1e6) + " ms");
-            }
-        });
-        JButton botonArtista = crearBoton("Artista", 500, 200, ANCHO_BOTON_ORDEN, ALTO_BOTON, true);
-        botonArtista.addActionListener(e -> {
-            long inicio = System.nanoTime();
-            playlist.ordenarCancionesPorArtista();
-            long fin = System.nanoTime();
-            actualizarPanelCanciones();
-            if (playlist.getListaDeCanciones().isEmpty()) {
-                mostrarTiempo("");
-            } else {
-                mostrarTiempo("Coste computacional (Artista): " + ((fin - inicio) / 1e6) + " ms");
-            }
-        });
-        JButton botonDuracion = crearBoton("Duración", 750, 200, ANCHO_BOTON_ORDEN, ALTO_BOTON, true);
-        botonDuracion.addActionListener(e -> {
-            long inicio = System.nanoTime();
-            playlist.ordenarCancionesPorDuracion();
-            long fin = System.nanoTime();
-            actualizarPanelCanciones();
-            if (playlist.getListaDeCanciones().isEmpty()) {
-                mostrarTiempo("");
-            } else {
-                mostrarTiempo("Coste computacional (Duración): " + ((fin - inicio) / 1e6) + " ms");
-            }
-        });
-        add(botonNombre);
-        add(botonArtista);
-        add(botonDuracion);
-    }
-
-    private JButton crearBoton(String texto, int x, int y, int ancho, int alto, boolean usarXY) {
-        JButton boton = new JButton(texto);
-        if (usarXY) {
-            boton.setBounds(x, y, ancho, alto);
-        } else {
-            boton.setPreferredSize(new Dimension(ancho, alto));
-        }
-        boton.setFont(new Font("", Font.BOLD, 18));
-        boton.setFocusPainted(false);
-        boton.setContentAreaFilled(false);
-        boton.setBorder(new Bordes(50));
-        boton.setForeground(Color.WHITE);
-        return boton;
-    }
-
-
-    private void agregarBarraSuperior() {
-        JPanel barraSuperior = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-        barraSuperior.setBackground(Color.BLACK);
-        barraSuperior.setBounds(X, Y, ANCHO_VENTANA, 90);
-
+    private void agregarPanelSuperior() {
+        JPanel panelSuperior = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+        panelSuperior.setBackground(Color.BLACK);
+        panelSuperior.setBounds(X, Y, ANCHO_VENTANA, 90);
 
         JButton botonMas = crearBoton("➕", X, Y, ANCHO_BOTON_BARRA, ALTO_BOTON, false);
         botonMas.addActionListener(e -> {
@@ -139,28 +59,28 @@ public class VentanaPlaylist extends JPanel {
             iconoBarraEscritura.setFont(new Font("", Font.BOLD, TAMAÑO_LETRA));
             iconoBarraEscritura.setText("Nombre   ");
             barraDeEscritura.requestFocus();
-            limpiarTiempo();
+            limpiarCosteComputacional();
         });
 
         JButton botonReorganizar = crearBoton("\uD83D\uDD03", X, Y, ANCHO_BOTON_BARRA, ALTO_BOTON, false);
         botonReorganizar.addActionListener(e -> {
-            playlist.revolverCanciones();         // Revolvemos las canciones
+            playlist.revolverCanciones(); // Revolver las canciones
             actualizarPanelCanciones();
-            limpiarTiempo();// Método que vuelve a mostrar las canciones en la interfaz
+            limpiarCosteComputacional();
         });
 
         JButton botonBiblioteca = crearBoton("\uD83D\uDCD7 ", X, Y, ANCHO_BOTON_BARRA, ALTO_BOTON, false);
         botonBiblioteca.addActionListener(e -> {
             playlist = new PlayList(); // Reinicia la lista con una nueva instancia
             playlist.cargarCancionesIniciales(); // Carga las canciones por defecto
-            actualizarPanelCanciones(); //
-            limpiarTiempo();
+            actualizarPanelCanciones();
+            limpiarCosteComputacional();
         });
 
-        JPanel panelBusqueda = new JPanel(new BorderLayout());
-        panelBusqueda.setBackground(Color.BLACK);
-        panelBusqueda.setBorder(new Bordes(50));
-        panelBusqueda.setPreferredSize(new Dimension(500, ALTO_BOTON));
+        JPanel panelBarraEscritura = new JPanel(new BorderLayout());
+        panelBarraEscritura.setBackground(Color.BLACK);
+        panelBarraEscritura.setBorder(new Bordes(50));
+        panelBarraEscritura.setPreferredSize(new Dimension(500, ALTO_BOTON));
 
         // Icono
         iconoBarraEscritura = new JLabel("\uD83C\uDFB5   ");
@@ -184,14 +104,14 @@ public class VentanaPlaylist extends JPanel {
                     tempNombre = entrada;
                     barraDeEscritura.setText("");
                     iconoBarraEscritura.setFont(new Font("", Font.BOLD, TAMAÑO_LETRA));
-                    iconoBarraEscritura.setText("Artista   "); // nuevo ícono
+                    iconoBarraEscritura.setText("Artista   ");
                     estadoIngreso = 2;
                     break;
                 case 2:
                     tempArtista = entrada;
                     barraDeEscritura.setText("");
                     iconoBarraEscritura.setFont(new Font("", Font.BOLD, TAMAÑO_LETRA));
-                    iconoBarraEscritura.setText("Duración   "); // nuevo ícono
+                    iconoBarraEscritura.setText("Duración   ");
                     estadoIngreso = 3;
                     break;
                 case 3:
@@ -215,51 +135,130 @@ public class VentanaPlaylist extends JPanel {
             }
         });
 
-        panelBusqueda.add(iconoBarraEscritura, BorderLayout.WEST);
-        panelBusqueda.add(barraDeEscritura, BorderLayout.CENTER);
+        panelBarraEscritura.add(iconoBarraEscritura, BorderLayout.WEST);
+        panelBarraEscritura.add(barraDeEscritura, BorderLayout.CENTER);
 
-        barraSuperior.add(botonMas);
-        barraSuperior.add(botonBiblioteca);
-        barraSuperior.add(panelBusqueda);
-        barraSuperior.add(botonReorganizar);
+        panelSuperior.add(botonMas);
+        panelSuperior.add(botonBiblioteca);
+        panelSuperior.add(panelBarraEscritura);
+        panelSuperior.add(botonReorganizar);
 
-        add(barraSuperior);
+        add(panelSuperior);
     }
 
+    private void agregarBotonesOrdenamiento() {
+        JButton botonNombre = crearBoton("Nombre", 250, 200, ANCHO_BOTON_ORDEN, ALTO_BOTON, true);
+        botonNombre.addActionListener(e -> {
+            ArrayList<Canción> copia = new ArrayList<>(playlist.getListaDeCanciones());
+
+            long inicio = System.nanoTime();
+            playlist.ordenarCancionesPorNombre();
+            long fin = System.nanoTime();
+
+            actualizarPanelCanciones();
+
+            if (playlist.getListaDeCanciones().isEmpty()) {
+                mostrarCosteComputacional("");
+            } else {
+                boolean estable = Estabilidad.esEstable(copia, playlist.getListaDeCanciones(), "nombre");
+                mostrarCosteComputacional("Coste computacional (Nombre): " + ((fin - inicio) / 1e6) + " ms"
+                        + (estable ? " | Estable" : " | No estable"));
+            }
+        });
+
+        JButton botonArtista = crearBoton("Artista", 500, 200, ANCHO_BOTON_ORDEN, ALTO_BOTON, true);
+        botonArtista.addActionListener(e -> {
+            ArrayList<Canción> copia = new ArrayList<>(playlist.getListaDeCanciones());
+
+            long inicio = System.nanoTime();
+            playlist.ordenarCancionesPorArtista();
+            long fin = System.nanoTime();
+
+            actualizarPanelCanciones();
+
+            if (playlist.getListaDeCanciones().isEmpty()) {
+                mostrarCosteComputacional("");
+            } else {
+                boolean estable = Estabilidad.esEstable(copia, playlist.getListaDeCanciones(), "artista");
+                mostrarCosteComputacional("Coste computacional (Artista): " + ((fin - inicio) / 1e6) + " ms"
+                        + (estable ? " | Estable" : " | No estable"));
+            }
+        });
+
+        JButton botonDuracion = crearBoton("Duración", 750, 200, ANCHO_BOTON_ORDEN, ALTO_BOTON, true);
+        botonDuracion.addActionListener(e -> {
+            ArrayList<Canción> copia = new ArrayList<>(playlist.getListaDeCanciones());
+
+            long inicio = System.nanoTime();
+            playlist.ordenarCancionesPorDuracion();
+            long fin = System.nanoTime();
+
+            actualizarPanelCanciones();
+
+            if (playlist.getListaDeCanciones().isEmpty()) {
+                mostrarCosteComputacional("");
+            } else {
+                boolean estable = Estabilidad.esEstable(copia, playlist.getListaDeCanciones(), "duración");
+                mostrarCosteComputacional("Coste computacional (Duración): " + ((fin - inicio) / 1e6) + " ms"
+                        + (estable ? " | Estable" : " | No estable"));
+            }
+        });
+
+        add(botonNombre);
+        add(botonArtista);
+        add(botonDuracion);
+    }
 
     private void agregarPanelCanciones() {
         panelCanciones = new JPanel();
         panelCanciones.setLayout(new BoxLayout(panelCanciones, BoxLayout.Y_AXIS));
         panelCanciones.setBackground(new Color(25, 25, 25));
 
-        JScrollPane scroll = new JScrollPane(panelCanciones);
-        scroll.getVerticalScrollBar().setUI(new Barra());
-        scroll.setBounds(150, 300, 900, 450);
-        scroll.setBorder(null);
-        scroll.getVerticalScrollBar().setUnitIncrement(16);
+        JScrollPane barraDeslizante = new JScrollPane(panelCanciones);
+        barraDeslizante.getVerticalScrollBar().setUI(new Barra());
+        barraDeslizante.setBounds(150, 300, 900, 450);
+        barraDeslizante.setBorder(null);
+        barraDeslizante.getVerticalScrollBar().setUnitIncrement(16);
 
-        add(scroll);
+        add(barraDeslizante);
         actualizarPanelCanciones();
     }
 
-    @Override
-    protected void paintComponent(Graphics graphics) {
-        super.paintComponent(graphics);
-        Graphics2D g2d = (Graphics2D) graphics;
-        g2d.setFont(g2d.getFont().deriveFont(Font.BOLD, 45F));
-
-        String texto = "Playlist Organizer";
-        g2d.setColor(new Color(75, 55, 144));
-        g2d.drawString(texto, 411, 150);
-        //g2d.drawImage(imagen, 950, 86, 100, 100, this);
-
+    private void agregarEtiquetaCosteComputacional() {
+        etiquetaCosteComputacional = new JLabel(" ");
+        etiquetaCosteComputacional.setBounds(411, 760, 700, 30);
+        etiquetaCosteComputacional.setForeground(Color.GREEN);
+        etiquetaCosteComputacional.setFont(new Font("", Font.BOLD, 16));
+        add(etiquetaCosteComputacional);
     }
 
+    private JButton crearBoton(String texto, int x, int y, int ancho, int alto, boolean usarXY) {
+        JButton boton = new JButton(texto);
+        if (usarXY) {
+            boton.setBounds(x, y, ancho, alto);
+        } else {
+            boton.setPreferredSize(new Dimension(ancho, alto));
+        }
+        boton.setFont(new Font("", Font.BOLD, 18));
+        boton.setFocusPainted(false);
+        boton.setContentAreaFilled(false);
+        boton.setBorder(new Bordes(50));
+        boton.setForeground(Color.WHITE);
+        return boton;
+    }
+
+    private void mostrarCosteComputacional(String mensaje) {
+        etiquetaCosteComputacional.setText(mensaje);
+    }
+
+    private void limpiarCosteComputacional() {
+        etiquetaCosteComputacional.setText(" ");
+    }
 
     private void actualizarPanelCanciones() {
         panelCanciones.removeAll();
 
-        // Recorre la lista de canciones y crea etiquetas para cada una
+        // Recorre la lista de canciones
         for (int i = 0; i < playlist.getListaDeCanciones().size(); i++) {
             Canción canción = playlist.getListaDeCanciones().get(i);
             String texto = (i + 1) + ". " + canción.getNombre() + " - " + canción.getArtista() + " (" + canción.getDuracion() + "s)";
@@ -272,10 +271,21 @@ public class VentanaPlaylist extends JPanel {
             panelCanciones.add(etiqueta);
         }
 
-        // Asegura que los cambios se vean en pantalla
+        // Para que los cambios se vean en pantalla
         panelCanciones.revalidate();
         panelCanciones.repaint();
     }
 
+    @Override
+    protected void paintComponent(Graphics graphics) {
+        super.paintComponent(graphics);
+        Graphics2D g2d = (Graphics2D) graphics;
+        g2d.setFont(g2d.getFont().deriveFont(Font.BOLD, 45F));
+
+        String texto = "Playlist Organizer";
+        g2d.setColor(new Color(75, 55, 144));
+        g2d.drawString(texto, 411, 150);
+
+    }
 
 }
